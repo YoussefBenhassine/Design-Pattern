@@ -1,0 +1,99 @@
+@startuml Diagramme de Séquence - Utilisation de l'Interface Graphique
+
+actor "Utilisateur" as User
+participant "MainWindow" as MainUI
+participant "ServiceSearchPanel" as SearchUI
+participant "ReservationPanel" as ResUI
+participant "HistoryPanel" as HistUI
+participant "UserPanel" as UserUI
+participant "ServiceSearchService" as SearchSvc
+participant "ReservationFacade" as Facade
+participant "UserService" as UserSvc
+participant "ReservationService" as ResSvc
+
+== Initialisation ==
+User -> MainUI: Lancer l'application
+activate MainUI
+MainUI -> MainUI: Créer les panneaux UI
+MainUI -> UserSvc: Créer utilisateurs de démo
+activate UserSvc
+UserSvc --> MainUI: OK
+deactivate UserSvc
+MainUI -> MainUI: Afficher l'interface avec onglets
+MainUI --> User: Interface prête
+
+== Recherche de Services ==
+User -> SearchUI: Sélectionner onglet "Recherche"
+activate SearchUI
+User -> SearchUI: Entrer critères de recherche
+User -> SearchUI: Cliquer "Rechercher"
+SearchUI -> SearchSvc: search(category, name)
+activate SearchSvc
+SearchSvc --> SearchUI: List<Service>
+deactivate SearchSvc
+SearchUI -> SearchUI: Afficher résultats dans tableau
+SearchUI --> User: Services affichés
+
+== Création de Réservation ==
+User -> ResUI: Sélectionner onglet "Réserver"
+activate ResUI
+ResUI -> SearchSvc: searchAll()
+activate SearchSvc
+SearchSvc --> ResUI: List<Service>
+deactivate SearchSvc
+ResUI -> ResUI: Remplir liste déroulante
+User -> ResUI: Sélectionner service
+User -> ResUI: Remplir formulaire (date, heure, paiement)
+User -> ResUI: Cliquer "Réserver"
+ResUI -> Facade: completeReservation(...)
+activate Facade
+Facade -> Facade: Orchestrer réservation + paiement + notifications
+Facade --> ResUI: Reservation
+deactivate Facade
+ResUI -> ResUI: Afficher résultat dans zone de texte
+ResUI --> User: Message de confirmation
+
+== Consultation Historique ==
+User -> HistUI: Sélectionner onglet "Mes Réservations"
+activate HistUI
+User -> HistUI: Entrer Client ID
+User -> HistUI: Cliquer "Actualiser"
+HistUI -> ResSvc: getClientHistory(clientId)
+activate ResSvc
+ResSvc --> HistUI: List<Reservation>
+deactivate ResSvc
+HistUI -> HistUI: Afficher dans tableau
+HistUI --> User: Historique affiché
+
+== Annulation de Réservation ==
+User -> HistUI: Sélectionner une réservation
+User -> HistUI: Cliquer "Annuler"
+HistUI -> HistUI: Afficher dialogue de confirmation
+User -> HistUI: Confirmer
+HistUI -> ResSvc: cancelReservation(reservationId)
+activate ResSvc
+ResSvc --> HistUI: OK
+deactivate ResSvc
+HistUI -> HistUI: Actualiser le tableau
+HistUI --> User: Réservation annulée
+
+== Gestion Utilisateurs ==
+User -> UserUI: Sélectionner onglet "Utilisateurs"
+activate UserUI
+User -> UserUI: Remplir formulaire de création
+User -> UserUI: Cliquer "Créer Utilisateur"
+UserUI -> UserSvc: createUser(type, id, name, email, phone)
+activate UserSvc
+UserSvc --> UserUI: User
+deactivate UserSvc
+UserUI -> UserUI: Actualiser tableau
+UserUI --> User: Utilisateur créé
+
+deactivate MainUI
+deactivate SearchUI
+deactivate ResUI
+deactivate HistUI
+deactivate UserUI
+
+@enduml
+
